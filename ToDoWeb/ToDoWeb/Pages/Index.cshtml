@@ -1,0 +1,263 @@
+﻿@page
+@model ToDoWeb.Index;
+@{
+    ViewData["Title"] = "Home page";
+    Quest quest = new();
+    string theme = "dark";
+}
+
+<style>
+
+    * {
+        transition: 0.7s;
+    }
+
+    .table tr:hover td {
+        background-color: #00000000;
+    }
+
+    tr {
+        line-height: 0.8;
+        text-shadow: 7px 7px 5px rgba(0,0,0,0.5);
+    }
+
+    .form {
+        text-shadow: 7px 7px 5px rgba(0,0,0,0.5);
+    }
+
+    input {
+        margin-top: 1vh;
+        margin-bottom: 1vh;
+        box-shadow: 7px 7px 5px rgba(0,0,0,0.3);
+        text-shadow: 7px 7px 5px rgba(0,0,0,0.5);
+    }
+
+    .btnList {
+        box-shadow: 7px 7px 5px rgba(0,0,0,0.3);
+    }
+
+    [contenteditable] {
+        outline: 0px solid transparent;
+    }
+
+    button {
+        outline: 0px solid transparent;
+    }
+
+    tr:hover {
+        box-shadow: 7px 7px 7px rgba(0,0,0,0.5);
+    }
+
+        tr:hover .btnText {
+            text-shadow: 3px 3px 3px rgb(0,0,0);
+        }
+
+        tr:hover h1,
+        tr:hover h3,
+        tr:hover h2 {
+            color: #212529;
+            line-height: 1.5;
+            text-shadow: none;
+        }
+
+    .form-control::placeholder {
+        color: white;
+    }
+
+    table {
+        padding-inline-end: 2vw;
+    }
+
+    .form-control:focus {
+        border-color: white;
+        box-shadow: inset 0 1px 1px rgba(0,0,0,0.075), 0 0 10px rgba(255,255,255, 0.6);
+        text-shadow: none;
+    }
+
+    .table {
+        border-collapse: separate;
+        border-spacing: 0 2vh;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+
+
+</style>
+
+
+
+<div class="row mt-3">
+
+    <div class="col-6">
+        <div class="table-responsive">
+            <table class="table table-borderless table-dark rounded overflow-hidden">
+                @if (Model.Message.Count == 0)
+                {
+                    <h1 class="text-warning"><strong>Quest list is empty!</strong></h1>
+                }
+                else
+                {
+
+                    @foreach (var item in Model.Message)
+                    {
+                        var priorityColor = "info";
+                        @switch (item.Priority)
+                        {
+                            case "high":
+                                priorityColor = "danger";
+                                break;
+                            case "medium":
+                                priorityColor = "warning";
+                                break;
+                            case "low":
+                                priorityColor = "success";
+                                break;
+                            default:
+                                break;
+                        }
+                        <tr class=" bg-@priorityColor" onmouseover="changeButtonColor(@item.Id)" onmouseout="resetButtonColor(@item.Id)">
+                            <td class="rounded overflow-hidden text-@priorityColor">
+                                <h2 class="text w-25">@item.Id</h2>
+                                <h1 id="@item.Id title" contenteditable="true" class="text w-50" oninput="upDateQuest(@item.Id)">@item.Title</h1>
+                                <h3 id="@item.Id priority" contenteditable="true" class="text row-25" oninput="upDateQuest(@item.Id)">@item.Priority</h3>
+                                <form method="post" action="">
+                                    <input id="@item.Id inputTitle" class="hidden" value="@item.Title" name="inputTitle" />
+                                    <input id="@item.Id inputPriority" class="hidden" value="@item.Priority" name="inputPriority" />
+                                    <input class="hidden" value="@item.Id" name="inputId" />
+                                    <input id="@item.Id update" class="hidden" name="isUpdate" />
+                                    <button id="@item.Id btn" class="btn btn-@priorityColor text-dark btnList" type="submit"><span class="btnText">Delete</span></button>
+                                </form>
+                            </td>
+
+                        </tr>
+                    }
+                }
+            </table>
+
+        </div>
+    </div>
+    <div class="col-6 form">
+
+        <form method="post">
+            <div class="form-group">
+                <label id="labelTitle" for="inputTitle"><h2 class="text-white">Title:</h2></label>
+                <br />
+                <input id="inputTitle" type="text" name="inputTitle" placeholder="Enter tittle" class="form-control bg-dark text-white" oninput="checkIsEmpty()" />
+            </div>
+            <div class="form-group">
+                <label id="labelTitle" for="inputTitle"><h3 class="text-white">Priority (<span class="text-success">low</span>/<span class="text-warning">medium</span>/<span class="text-danger">high</span>)</h3></label>
+                <input id="inputPriority" type="text" name="inputPriority" placeholder="Enter priority" class="form-control bg-dark text-white" oninput="checkIsEmpty()" />
+                <input class="hidden" name="inputId" value="0" />
+            </div>
+            <button id="btn" type="submit" class="btn btn-dark border disabled mt-3" onclick="">Add</button>
+        </form>
+
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    const inputTitle = document.getElementById("inputTitle");
+    const inputPriority = document.getElementById("inputPriority");
+    const btn = document.getElementById("btn")
+
+    let title;
+    let priority;
+    function checkIsEmpty() {
+
+        priority = inputPriority.value;
+        title = inputTitle.value;
+        console.log(priority.length)
+
+        if (title.length > 0 && priority.length > 0) {
+            if (priority === "low") {
+                btn.className = "btn btn-success text-white mt-3 btnList";
+            } else if (priority == "medium") {
+                btn.className = "btn btn-warning text-white mt-3 btnList";
+            } else if (priority == "high") {
+                btn.className = "btn btn-danger text-white mt-3 btnList";
+            } else {
+                btn.className = "btn btn-info text-white mt-3 btnList";
+            }
+
+        } else {
+            btn.className = "btn btn-@theme border disabled mt-3"
+        }
+
+    }
+
+    function upDateQuest(id) {
+        let title = document.getElementById(id + " title").textContent;
+        const inputTitle = document.getElementById(id + " inputTitle");
+
+        let priority = document.getElementById(id + " priority").textContent;
+        const inputPriority = document.getElementById(id + " inputPriority");
+
+        const update = document.getElementById(id + " update");
+        const btn = document.getElementById(id + " btn");
+
+        btn.textContent = "Update";
+
+        inputTitle.value = title;
+        inputPriority.value = priority;
+        update.value = true;
+
+        console.log(inputTitle.value);
+        console.log(inputPriority.value);
+
+
+    }
+
+    function changeButtonColor(id) {
+        const btn = document.getElementById(id + " btn")
+        const priority = document.getElementById(id + " priority")
+
+        switch (priority.textContent) {
+            case "low":
+                btn.className = "btn btn-@theme text-success";
+                break;
+            case "medium":
+                btn.className = "btn btn-@theme text-warning";
+                break;
+            case "high":
+                btn.className = "btn btn-@theme text-danger";
+                break;
+            default:
+                btn.className = "btn btn-@theme text-info";
+                break;
+        }
+    }
+
+    function resetButtonColor(id) {
+        const btn = document.getElementById(id + " btn")
+
+        switch (document.getElementById(id + " priority").textContent) {
+            case "low":
+                btn.className = "btn btn-success text-@theme btnList";
+                break;
+            case "medium":
+                btn.className = "btn btn-warning text-@theme btnList";
+                break;
+            case "high":
+                btn.className = "btn btn-danger text-@theme btnList";
+                break;
+            default:
+                btn.className = "btn btn-info text-@theme btnList";
+                break;
+        }
+    }
+
+
+
+    function changeTheme(){
+        const body = document.getElementById("body");
+            body.className == "bg-light"
+            console.log("test")
+    }
+
+
+
+</script>
